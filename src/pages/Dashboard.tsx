@@ -37,10 +37,11 @@ export default function Dashboard() {
     }
 
     const today = new Date().toDateString();
-    const savedReflection = localStorage.getItem("reflection");
 
-    if (savedReflection) {
-      const parsed = JSON.parse(savedReflection);
+    const saved = localStorage.getItem("reflection");
+
+    if (saved) {
+      const parsed = JSON.parse(saved);
 
       if (parsed.date === today) {
         setSavedReflection(parsed.text);
@@ -53,7 +54,7 @@ export default function Dashboard() {
     runDailyReminder();
   }, []);
 
-  const saveReflection = () => {
+  function saveReflection() {
     if (!reflection.trim()) return;
 
     const data = {
@@ -62,9 +63,11 @@ export default function Dashboard() {
     };
 
     localStorage.setItem("reflection", JSON.stringify(data));
+
     setSavedReflection(reflection);
+
     setReflection("");
-  };
+  }
 
   const lastSmoke = [...logs].reverse().find((log) => log.smoked);
 
@@ -77,15 +80,20 @@ export default function Dashboard() {
   const diff = Date.now() - startDate.getTime();
 
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+
+  const hours = Math.floor(
+    (diff / (1000 * 60 * 60)) % 24
+  );
 
   let streak = 0;
 
   if (lastSmoke) {
     const last = new Date(lastSmoke.time);
+
     last.setHours(0, 0, 0, 0);
 
     const today = new Date();
+
     today.setHours(0, 0, 0, 0);
 
     streak = Math.max(
@@ -104,39 +112,48 @@ export default function Dashboard() {
   const averageCraving =
     totalLogs > 0
       ? (
-          logs.reduce((sum, log) => sum + (log.craving || 0), 0) /
-          totalLogs
+          logs.reduce(
+            (sum, log) => sum + (log.craving || 0),
+            0
+          ) / totalLogs
         ).toFixed(1)
       : "—";
 
   const latestMood =
-    logs.length > 0 ? logs[0].mood : "No check-in yet";
+    logs.length > 0
+      ? logs[0].mood
+      : "No check-in yet";
 
   const hour = new Date().getHours();
 
-  let greeting = "Welcome back.";
+  let greeting = "";
 
-  if (hour < 12) greeting = "Good morning.";
-  else if (hour < 17) greeting = "Hope your day's going well.";
-  else if (hour < 22) greeting = "Good evening.";
-  else greeting = "You're up late.";
+  if (hour < 12) {
+    greeting =
+      "Good morning. Take today one moment at a time. 💙";
+  } else if (hour < 17) {
+    greeting =
+      "I'm glad you're here today. 💙";
+  } else if (hour < 22) {
+    greeting =
+      "Good evening. Be kind to yourself today. 💙";
+  } else {
+    greeting =
+      "It's been a long day. I hope you're taking a moment for yourself. 💙";
+  }
 
   function getHealthUpdate() {
-    if (days < 1) {
+    if (days < 1)
       return "Carbon monoxide levels are returning to normal.";
-    }
 
-    if (days < 2) {
+    if (days < 2)
       return "Nicotine has now left your body.";
-    }
 
-    if (days < 14) {
+    if (days < 14)
       return "Your circulation is beginning to improve.";
-    }
 
-    if (days < 90) {
+    if (days < 90)
       return "Your lungs are continuing to heal.";
-    }
 
     return "Your body continues to recover every smoke-free day.";
   }
@@ -154,9 +171,7 @@ export default function Dashboard() {
   ];
 
   const thought =
-    thoughts[new Date().getDate() % thoughts.length];
-
-  return (
+    thoughts[new Date().getDate() % thoughts.length];  return (
     <main className="min-h-screen bg-slate-50 max-w-md mx-auto px-6 py-8 pb-32">
 
       <header className="mb-8">
@@ -230,6 +245,7 @@ export default function Dashboard() {
       </Card>
 
       <Card title="A moment for yourself">
+
         {savedReflection ? (
           <>
             <p className="italic text-slate-700 leading-7">
@@ -243,7 +259,7 @@ export default function Dashboard() {
         ) : (
           <>
             <p className="text-slate-500 mb-4">
-              How are you feeling right now?
+              What's on your mind right now? 💙
             </p>
 
             <textarea
@@ -251,38 +267,39 @@ export default function Dashboard() {
               value={reflection}
               onChange={(e) => setReflection(e.target.value)}
               placeholder="Write a few words..."
-              className="w-full rounded-2xl border border-slate-200 p-4 resize-none outline-none"
+              className="w-full rounded-2xl border border-slate-200 p-4 resize-none outline-none focus:border-[#315A8B]"
             />
 
             <button
               onClick={saveReflection}
-              className="mt-4 w-full rounded-full bg-[#315A8B] py-3 text-white font-medium"
+              className="mt-4 w-full rounded-full bg-[#315A8B] py-3 text-white font-medium transition active:scale-95"
             >
               Save reflection
             </button>
           </>
         )}
+
       </Card>
 
       <div className="mt-8 space-y-3">
 
         <button
           onClick={() => navigate("/log")}
-          className="w-full rounded-full bg-[#315A8B] py-4 text-white font-medium active:scale-95 transition"
+          className="w-full rounded-full bg-[#315A8B] py-4 text-white font-medium transition active:scale-95"
         >
           Check in
         </button>
 
         <button
           onClick={() => navigate("/pause")}
-          className="w-full rounded-full border border-slate-200 bg-white py-4 text-slate-700 active:scale-95 transition"
+          className="w-full rounded-full border border-slate-200 bg-white py-4 text-slate-700 transition active:scale-95"
         >
           Take a minute
         </button>
 
         <button
           onClick={() => navigate("/insights")}
-          className="w-full rounded-full border border-slate-200 bg-white py-4 text-slate-700 active:scale-95 transition"
+          className="w-full rounded-full border border-slate-200 bg-white py-4 text-slate-700 transition active:scale-95"
         >
           View progress
         </button>
