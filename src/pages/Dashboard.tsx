@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [logs, setLogs] = useState<Log[]>([]);
   const [reflection, setReflection] = useState("");
   const [savedReflection, setSavedReflection] = useState("");
+  const [name, setName] = useState("");
 
   useEffect(() => {
     try {
@@ -38,16 +39,22 @@ export default function Dashboard() {
 
     const today = new Date().toDateString();
 
-    const saved = localStorage.getItem("reflection");
+    const savedReflection = localStorage.getItem("reflection");
 
-    if (saved) {
-      const parsed = JSON.parse(saved);
+    if (savedReflection) {
+      const parsed = JSON.parse(savedReflection);
 
       if (parsed.date === today) {
         setSavedReflection(parsed.text);
       } else {
         localStorage.removeItem("reflection");
       }
+    }
+
+    const savedName = localStorage.getItem("name");
+
+    if (savedName) {
+      setName(savedName);
     }
 
     requestNotificationPermission();
@@ -62,14 +69,18 @@ export default function Dashboard() {
       text: reflection,
     };
 
-    localStorage.setItem("reflection", JSON.stringify(data));
+    localStorage.setItem(
+      "reflection",
+      JSON.stringify(data)
+    );
 
     setSavedReflection(reflection);
-
     setReflection("");
   }
 
-  const lastSmoke = [...logs].reverse().find((log) => log.smoked);
+  const lastSmoke = [...logs]
+    .reverse()
+    .find((log) => log.smoked);
 
   const startDate = lastSmoke
     ? new Date(lastSmoke.time)
@@ -79,7 +90,9 @@ export default function Dashboard() {
 
   const diff = Date.now() - startDate.getTime();
 
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const days = Math.floor(
+    diff / (1000 * 60 * 60 * 24)
+  );
 
   const hours = Math.floor(
     (diff / (1000 * 60 * 60)) % 24
@@ -89,11 +102,9 @@ export default function Dashboard() {
 
   if (lastSmoke) {
     const last = new Date(lastSmoke.time);
-
     last.setHours(0, 0, 0, 0);
 
     const today = new Date();
-
     today.setHours(0, 0, 0, 0);
 
     streak = Math.max(
@@ -113,7 +124,8 @@ export default function Dashboard() {
     totalLogs > 0
       ? (
           logs.reduce(
-            (sum, log) => sum + (log.craving || 0),
+            (sum, log) =>
+              sum + (log.craving || 0),
             0
           ) / totalLogs
         ).toFixed(1)
@@ -129,31 +141,39 @@ export default function Dashboard() {
   let greeting = "";
 
   if (hour < 12) {
-    greeting =
-      "Good morning. Take today one moment at a time. 💙";
+    greeting = name
+      ? `Good morning, ${name}. Take today one moment at a time. 💙`
+      : "Good morning. Take today one moment at a time. 💙";
   } else if (hour < 17) {
-    greeting =
-      "I'm glad you're here today. 💙";
+    greeting = name
+      ? `I'm glad you're here today, ${name}. 💙`
+      : "I'm glad you're here today. 💙";
   } else if (hour < 22) {
-    greeting =
-      "Good evening. Be kind to yourself today. 💙";
+    greeting = name
+      ? `Good evening, ${name}. Be kind to yourself today. 💙`
+      : "Good evening. Be kind to yourself today. 💙";
   } else {
-    greeting =
-      "It's been a long day. I hope you're taking a moment for yourself. 💙";
+    greeting = name
+      ? `It's been a long day, ${name}. I hope you're taking a moment for yourself. 💙`
+      : "It's been a long day. I hope you're taking a moment for yourself. 💙";
   }
 
   function getHealthUpdate() {
-    if (days < 1)
+    if (days < 1) {
       return "Carbon monoxide levels are returning to normal.";
+    }
 
-    if (days < 2)
+    if (days < 2) {
       return "Nicotine has now left your body.";
+    }
 
-    if (days < 14)
+    if (days < 14) {
       return "Your circulation is beginning to improve.";
+    }
 
-    if (days < 90)
+    if (days < 90) {
       return "Your lungs are continuing to heal.";
+    }
 
     return "Your body continues to recover every smoke-free day.";
   }
@@ -176,7 +196,7 @@ export default function Dashboard() {
 
       <header className="mb-8">
         <h1 className="text-4xl font-bold text-slate-800">
-          With Grace
+          Project Cee
         </h1>
 
         <p className="text-slate-500 mt-3">
@@ -244,7 +264,7 @@ export default function Dashboard() {
         </p>
       </Card>
 
-      <Card title="A moment for yourself">
+      <Card title={name ? `A moment for yourself, ${name}` : "A moment for yourself"}>
 
         {savedReflection ? (
           <>
@@ -259,7 +279,9 @@ export default function Dashboard() {
         ) : (
           <>
             <p className="text-slate-500 mb-4">
-              What's on your mind right now? 💙
+              {name
+                ? `${name}, what's on your mind today? 💙`
+                : "What's on your mind today? 💙"}
             </p>
 
             <textarea

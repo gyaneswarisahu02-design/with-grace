@@ -12,11 +12,12 @@ export default defineConfig({
       registerType: "autoUpdate",
 
       manifest: {
-        name: "With Grace",
-        short_name: "Grace",
-        description: "Smoke-free tracker & wellbeing app",
-        theme_color: "#274C77",
-        background_color: "#F5F9FC",
+        name: "Project Cee",
+        short_name: "Project Cee",
+        description:
+          "A gentle companion for your smoke-free journey.",
+        theme_color: "#315A8B",
+        background_color: "#F8FAFC",
         display: "standalone",
         start_url: "/",
 
@@ -30,6 +31,12 @@ export default defineConfig({
             src: "/pwa-512.png",
             sizes: "512x512",
             type: "image/png",
+          },
+          {
+            src: "/pwa-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
           },
         ],
       },
