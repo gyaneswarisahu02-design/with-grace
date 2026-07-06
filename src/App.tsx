@@ -7,15 +7,26 @@ import Pause from "./pages/Pause";
 import Settings from "./pages/Settings";
 import Welcome from "./pages/Welcome";
 
+type Profile = {
+  name: string;
+  quitDate: string;
+  urgesResisted: number;
+  createdAt: string;
+};
+
 export default function App() {
-  const hasName = !!localStorage.getItem("name");
+  const profile: Profile | null = JSON.parse(
+    localStorage.getItem("profile") || "null"
+  );
+
+  const hasProfile = !!profile;
 
   return (
     <Routes>
       <Route
         path="/"
         element={
-          hasName ? (
+          hasProfile ? (
             <Dashboard />
           ) : (
             <Navigate to="/welcome" replace />
@@ -26,7 +37,7 @@ export default function App() {
       <Route
         path="/welcome"
         element={
-          hasName ? (
+          hasProfile ? (
             <Navigate to="/" replace />
           ) : (
             <Welcome />
@@ -34,10 +45,49 @@ export default function App() {
         }
       />
 
-      <Route path="/log" element={<Log />} />
-      <Route path="/insights" element={<Insights />} />
-      <Route path="/pause" element={<Pause />} />
-      <Route path="/settings" element={<Settings />} />
+      <Route
+        path="/log"
+        element={
+          hasProfile ? (
+            <Log />
+          ) : (
+            <Navigate to="/welcome" replace />
+          )
+        }
+      />
+
+      <Route
+        path="/insights"
+        element={
+          hasProfile ? (
+            <Insights />
+          ) : (
+            <Navigate to="/welcome" replace />
+          )
+        }
+      />
+
+      <Route
+        path="/pause"
+        element={
+          hasProfile ? (
+            <Pause />
+          ) : (
+            <Navigate to="/welcome" replace />
+          )
+        }
+      />
+
+      <Route
+        path="/settings"
+        element={
+          hasProfile ? (
+            <Settings />
+          ) : (
+            <Navigate to="/welcome" replace />
+          )
+        }
+      />
     </Routes>
   );
 }
