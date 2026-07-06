@@ -42,10 +42,6 @@ export default function Insights() {
     (log) => !log.smoked
   ).length;
 
-  const smoked = logs.filter(
-    (log) => log.smoked
-  ).length;
-
   const averageCraving =
     totalCheckIns > 0
       ? (
@@ -221,9 +217,7 @@ export default function Insights() {
                 </p>
 
                 <p className="text-sm text-slate-400">
-                  {new Date(
-                    log.time
-                  ).toLocaleDateString()}
+                  {new Date(log.time).toLocaleDateString()}
                 </p>
               </div>
 
