@@ -2,12 +2,29 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 
+type Profile = {
+  name: string;
+  quitDate: string;
+  urgesResisted: number;
+  createdAt: string;
+};
+
+type Log = {
+  mood: string;
+  craving: number;
+  smoked: boolean;
+  urges: number;
+  notes: string;
+  time: string;
+};
+
 export default function Log() {
   const navigate = useNavigate();
 
   const [mood, setMood] = useState("");
   const [craving, setCraving] = useState(0);
   const [smoked, setSmoked] = useState<boolean | null>(null);
+  const [urges, setUrges] = useState(0);
   const [notes, setNotes] = useState("");
 
   function saveLog() {
@@ -16,17 +33,28 @@ export default function Log() {
       return;
     }
 
-    const previous = JSON.parse(localStorage.getItem("logs") || "[]");
+    const logs: Log[] = JSON.parse(localStorage.getItem("logs") || "[]");
 
-    previous.unshift({
+    const newLog: Log = {
       mood,
       craving,
       smoked,
+      urges,
       notes,
       time: new Date().toISOString(),
-    });
+    };
 
-    localStorage.setItem("logs", JSON.stringify(previous));
+    logs.unshift(newLog);
+    localStorage.setItem("logs", JSON.stringify(logs));
+
+    const profile: Profile | null = JSON.parse(
+      localStorage.getItem("profile") || "null"
+    );
+
+    if (profile) {
+      profile.urgesResisted += urges;
+      localStorage.setItem("profile", JSON.stringify(profile));
+    }
 
     navigate("/");
   }
@@ -40,11 +68,10 @@ export default function Log() {
   ];
 
   return (
-    <main className="min-h-screen bg-slate-50 max-w-md mx-auto px-6 py-8 pb-32">
-
+    <main className="min-h-screen max-w-md mx-auto bg-slate-50 px-6 py-8 pb-32">
       <button
         onClick={() => navigate("/")}
-        className="text-slate-500 mb-8"
+        className="mb-8 text-slate-500"
       >
         ← Back
       </button>
@@ -53,13 +80,12 @@ export default function Log() {
         Check in
       </h1>
 
-      <p className="text-slate-500 mt-2 mb-10">
+      <p className="mt-2 mb-10 text-slate-500">
         Take a moment. There's no right or wrong answer.
       </p>
 
-      <section className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-6">
-
-        <h2 className="font-semibold mb-5">
+      <section className="mb-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <h2 className="mb-5 font-semibold">
           How are you arriving today?
         </h2>
 
@@ -68,9 +94,9 @@ export default function Log() {
             <button
               key={item}
               onClick={() => setMood(item)}
-              className={`rounded-2xl border p-4 ${
+              className={`rounded-2xl border p-4 transition ${
                 mood === item
-                  ? "bg-[#315A8B] text-white border-[#315A8B]"
+                  ? "border-[#315A8B] bg-[#315A8B] text-white"
                   : "border-slate-200"
               }`}
             >
@@ -78,22 +104,20 @@ export default function Log() {
             </button>
           ))}
         </div>
-
       </section>
 
-      <section className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-6">
-
+      <section className="mb-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
         <h2 className="font-semibold">
           How strong is the craving right now?
         </h2>
 
         <input
           type="range"
-          min="0"
-          max="10"
+          min={0}
+          max={10}
           value={craving}
           onChange={(e) => setCraving(Number(e.target.value))}
-          className="w-full mt-6"
+          className="mt-6 w-full"
         />
 
         <div className="flex justify-between text-xs text-slate-400">
@@ -101,23 +125,20 @@ export default function Log() {
           <span>10</span>
         </div>
 
-        <p className="text-center text-3xl font-bold mt-4 text-[#315A8B]">
+        <p className="mt-4 text-center text-3xl font-bold text-[#315A8B]">
           {craving}/10
         </p>
-
       </section>
 
-      <section className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-6">
-
-        <h2 className="font-semibold mb-5">
+      <section className="mb-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <h2 className="mb-5 font-semibold">
           Did you smoke?
         </h2>
 
         <div className="grid grid-cols-2 gap-3">
-
           <button
             onClick={() => setSmoked(false)}
-            className={`rounded-2xl py-4 ${
+            className={`rounded-2xl py-4 transition ${
               smoked === false
                 ? "bg-green-600 text-white"
                 : "bg-slate-100"
@@ -128,7 +149,7 @@ export default function Log() {
 
           <button
             onClick={() => setSmoked(true)}
-            className={`rounded-2xl py-4 ${
+            className={`rounded-2xl py-4 transition ${
               smoked === true
                 ? "bg-red-500 text-white"
                 : "bg-slate-100"
@@ -136,14 +157,27 @@ export default function Log() {
           >
             Yes
           </button>
-
         </div>
-
       </section>
 
-      <section className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-8">
+      <section className="mb-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <h2 className="mb-4 font-semibold">
+          How many urges did you successfully resist today?
+        </h2>
 
-        <h2 className="font-semibold mb-4">
+        <input
+          type="number"
+          min={0}
+          value={urges}
+          onChange={(e) =>
+            setUrges(Math.max(0, Number(e.target.value)))
+          }
+          className="w-full rounded-2xl border border-slate-200 p-4 outline-none focus:border-[#315A8B]"
+        />
+      </section>
+
+      <section className="mb-8 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <h2 className="mb-4 font-semibold">
           Anything you'd like to remember?
         </h2>
 
@@ -152,20 +186,18 @@ export default function Log() {
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Maybe what happened, how you're feeling, or what's on your mind..."
-          className="w-full rounded-2xl border border-slate-200 p-4 resize-none outline-none"
+          className="w-full resize-none rounded-2xl border border-slate-200 p-4 outline-none focus:border-[#315A8B]"
         />
-
       </section>
 
       <button
         onClick={saveLog}
-        className="w-full rounded-full bg-[#315A8B] py-4 text-white font-medium"
+        className="w-full rounded-full bg-[#315A8B] py-4 font-medium text-white transition active:scale-95"
       >
         Save check-in
       </button>
 
       <BottomNav />
-
     </main>
   );
 }

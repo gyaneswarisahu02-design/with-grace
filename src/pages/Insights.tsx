@@ -1,30 +1,56 @@
 import { useNavigate } from "react-router-dom";
 import {
+  ResponsiveContainer,
   LineChart,
   Line,
-  ResponsiveContainer,
-  XAxis,
   Tooltip,
+  XAxis,
 } from "recharts";
 
 import BottomNav from "../components/BottomNav";
 
+type Profile = {
+  name: string;
+  quitDate: string;
+  urgesResisted: number;
+  createdAt: string;
+};
+
+type Log = {
+  mood: string;
+  craving: number;
+  smoked: boolean;
+  urges: number;
+  notes: string;
+  time: string;
+};
+
 export default function Insights() {
   const navigate = useNavigate();
 
-  const logs = JSON.parse(localStorage.getItem("logs") || "[]");
+  const profile: Profile | null = JSON.parse(
+    localStorage.getItem("profile") || "null"
+  );
+
+  const logs: Log[] = JSON.parse(
+    localStorage.getItem("logs") || "[]"
+  );
 
   const totalCheckIns = logs.length;
 
-  const smokeFree = logs.filter((log: any) => !log.smoked).length;
+  const smokeFree = logs.filter(
+    (log) => !log.smoked
+  ).length;
 
-  const smoked = logs.filter((log: any) => log.smoked).length;
+  const smoked = logs.filter(
+    (log) => log.smoked
+  ).length;
 
   const averageCraving =
     totalCheckIns > 0
       ? (
           logs.reduce(
-            (sum: number, log: any) => sum + (log.craving || 0),
+            (sum, log) => sum + log.craving,
             0
           ) / totalCheckIns
         ).toFixed(1)
@@ -35,10 +61,22 @@ export default function Insights() {
       ? Math.round((smokeFree / totalCheckIns) * 100)
       : 0;
 
+  const quitDate = profile
+    ? new Date(profile.quitDate)
+    : new Date();
+
+  const smokeFreeDays = Math.max(
+    0,
+    Math.floor(
+      (Date.now() - quitDate.getTime()) /
+        (1000 * 60 * 60 * 24)
+    )
+  );
+
   const chartData = [...logs]
     .reverse()
     .slice(-7)
-    .map((log: any, index: number) => ({
+    .map((log, index) => ({
       day: index + 1,
       craving: log.craving,
     }));
@@ -46,32 +84,31 @@ export default function Insights() {
   const milestones = [
     {
       title: "Carbon monoxide returning to normal",
-      done: smokeFree >= 1,
+      done: smokeFreeDays >= 1,
     },
     {
       title: "Nicotine has left your body",
-      done: smokeFree >= 2,
+      done: smokeFreeDays >= 2,
     },
     {
       title: "Circulation is improving",
-      done: smokeFree >= 5,
+      done: smokeFreeDays >= 14,
     },
     {
       title: "Lungs continue to heal",
-      done: smokeFree >= 10,
+      done: smokeFreeDays >= 90,
     },
     {
-      title: "You're building healthier habits",
-      done: smokeFree >= 20,
+      title: "One full year smoke-free",
+      done: smokeFreeDays >= 365,
     },
   ];
 
   return (
-    <main className="min-h-screen bg-slate-50 max-w-md mx-auto px-6 py-8 pb-32">
-
+    <main className="min-h-screen max-w-md mx-auto bg-slate-50 px-6 py-8 pb-32">
       <button
         onClick={() => navigate("/")}
-        className="text-slate-500 mb-8"
+        className="mb-8 text-slate-500"
       >
         ← Back
       </button>
@@ -80,50 +117,47 @@ export default function Insights() {
         Progress
       </h1>
 
-      <p className="text-slate-500 mt-2 mb-10">
+      <p className="mt-2 mb-10 text-slate-500">
         A quiet look back at how things have been.
       </p>
 
-      {/* Summary */}
+      <section className="mb-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <div className="mb-5 flex justify-between">
+          <span className="text-slate-500">
+            Smoke-free days
+          </span>
 
-      <section className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-6">
+          <span className="font-semibold text-[#315A8B]">
+            {smokeFreeDays}
+          </span>
+        </div>
 
-        <div className="flex justify-between mb-5">
+        <div className="mb-5 flex justify-between">
+          <span className="text-slate-500">
+            Urges resisted
+          </span>
+
+          <span className="font-semibold text-slate-800">
+            {profile?.urgesResisted ?? 0}
+          </span>
+        </div>
+
+        <div className="mb-5 flex justify-between">
           <span className="text-slate-500">
             Check-ins
           </span>
 
-          <span className="font-semibold text-slate-800">
+          <span className="font-semibold">
             {totalCheckIns}
           </span>
         </div>
 
-        <div className="flex justify-between mb-5">
-          <span className="text-slate-500">
-            Smoke-free
-          </span>
-
-          <span className="font-semibold text-green-600">
-            {smokeFree}
-          </span>
-        </div>
-
-        <div className="flex justify-between mb-5">
-          <span className="text-slate-500">
-            Smoked
-          </span>
-
-          <span className="font-semibold text-red-500">
-            {smoked}
-          </span>
-        </div>
-
-        <div className="flex justify-between mb-5">
+        <div className="mb-5 flex justify-between">
           <span className="text-slate-500">
             Average craving
           </span>
 
-          <span className="font-semibold text-slate-800">
+          <span className="font-semibold">
             {averageCraving}/10
           </span>
         </div>
@@ -133,18 +167,14 @@ export default function Insights() {
             Smoke-free rate
           </span>
 
-          <span className="font-semibold text-[#315A8B]">
+          <span className="font-semibold text-green-600">
             {successRate}%
           </span>
         </div>
-
       </section>
 
-      {/* Craving Chart */}
-
-      <section className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-6">
-
-        <h2 className="font-semibold text-slate-800 mb-6">
+      <section className="mb-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <h2 className="mb-6 font-semibold">
           Recent cravings
         </h2>
 
@@ -165,17 +195,13 @@ export default function Insights() {
           </div>
         ) : (
           <p className="text-slate-500">
-            Keep checking in and you'll start to see patterns here.
+            Keep checking in to reveal your patterns.
           </p>
         )}
-
       </section>
 
-      {/* Recent Check-ins */}
-
-      <section className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-6">
-
-        <h2 className="font-semibold text-slate-800 mb-5">
+      <section className="mb-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <h2 className="mb-5 font-semibold">
           Recent check-ins
         </h2>
 
@@ -184,40 +210,41 @@ export default function Insights() {
             No check-ins yet.
           </p>
         ) : (
-          logs.slice(0, 5).map((log: any, index: number) => (
+          logs.slice(0, 5).map((log, index) => (
             <div
               key={index}
-              className="flex justify-between items-center py-3 border-b last:border-0 border-slate-100"
+              className="flex items-center justify-between border-b border-slate-100 py-3 last:border-0"
             >
               <div>
-                <p className="font-medium text-slate-800">
+                <p className="font-medium">
                   {log.mood || "No mood selected"}
                 </p>
 
                 <p className="text-sm text-slate-400">
-                  {new Date(log.time).toLocaleDateString()}
+                  {new Date(
+                    log.time
+                  ).toLocaleDateString()}
                 </p>
               </div>
 
-              <span className="text-slate-500">
-                {log.craving}/10
-              </span>
+              <div className="text-right">
+                <p>{log.craving}/10</p>
+
+                <p className="text-xs text-slate-400">
+                  {log.urges} urges
+                </p>
+              </div>
             </div>
           ))
         )}
-
       </section>
 
-      {/* Recovery */}
-
-      <section className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-6">
-
-        <h2 className="font-semibold text-slate-800 mb-5">
+      <section className="mb-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <h2 className="mb-5 font-semibold">
           Recovery milestones
         </h2>
 
         <div className="space-y-4">
-
           {milestones.map((item) => (
             <div
               key={item.title}
@@ -238,24 +265,17 @@ export default function Insights() {
               </span>
             </div>
           ))}
-
         </div>
-
       </section>
 
-      {/* Closing */}
-
-      <section className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-
-        <p className="italic text-slate-600 leading-7">
-          Progress isn't about being perfect.
-          It's about noticing the moments you've already made it through.
+      <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <p className="leading-7 italic text-slate-600">
+          Progress isn't about perfection.
+          It's about choosing yourself again and again.
         </p>
-
       </section>
 
       <BottomNav />
-
     </main>
   );
 }
